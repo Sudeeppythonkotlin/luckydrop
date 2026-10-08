@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LuckyDrop - Claim your free ticket</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#1b1646;--card:#fff;--ink:#1b1646;--gold:#ffc93c;--coral:#ff5a4e;--muted:#8d89b3}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:#fff;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+h1,h2,.big{font-family:"Bricolage Grotesque",system-ui,sans-serif}
+header{width:100%;max-width:480px;display:flex;justify-content:space-between;align-items:center;padding:16px 20px}
+.logo{font-weight:800;font-size:22px;color:var(--gold)}
+header a{color:#fff;font-size:14px}
+main{width:100%;max-width:480px;padding:0 20px 40px}
+.status{text-align:center;margin:8px 0 20px}
+.status h1{font-size:30px;line-height:1.15}
+.status p{color:var(--muted);margin-top:6px}
+/* ticket */
+.ticket{background:var(--card);color:var(--ink);border-radius:16px;padding:24px 20px;position:relative;
+ -webkit-mask:radial-gradient(circle 12px at 0 62%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 12px at 100% 62%,#0000 98%,#000) right/51% 100% no-repeat;
+ mask:radial-gradient(circle 12px at 0 62%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 12px at 100% 62%,#0000 98%,#000) right/51% 100% no-repeat}
+.ticket .prize{text-align:center;font-weight:800;font-size:20px;padding-bottom:18px;border-bottom:2px dashed #cfcbe6}
+.slots{display:flex;gap:8px;justify-content:center;margin:22px 0 8px}
+.slots input{width:54px;height:68px;text-align:center;font:800 32px "Bricolage Grotesque",system-ui,sans-serif;border:2px solid #cfcbe6;border-radius:12px;color:var(--ink);text-transform:uppercase}
+.slots input:first-child{border-color:var(--coral)}
+.slots input:focus{outline:3px solid var(--gold);border-color:var(--ink)}
+.hint{text-align:center;color:#6b67a0;font-size:13px;margin-bottom:18px}
+button{width:100%;padding:16px;border:0;border-radius:12px;background:var(--coral);color:#fff;font:800 18px "Bricolage Grotesque",system-ui,sans-serif;cursor:pointer}
+button:disabled{background:#cfcbe6;color:#7d79a8;cursor:not-allowed}
+button.ghost{background:none;border:2px solid #fff3;margin-top:16px;color:#fff;font-size:16px;padding:12px}
+.msg{text-align:center;margin-top:12px;min-height:20px;font-size:14px;color:var(--coral);font-weight:600}
+/* confirmed */
+.done .code{font:800 54px "Bricolage Grotesque",system-ui,sans-serif;text-align:center;letter-spacing:4px;margin:18px 0 4px}
+.done .sub{text-align:center;color:#6b67a0}
+.hidden{display:none!important}
+.ad{margin-top:20px;border:1px dashed #fff4;border-radius:12px;padding:18px;text-align:center;color:var(--muted);font-size:12px}
+footer{margin-top:auto;padding:20px;font-size:12px;color:var(--muted);text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <span class="logo">LuckyDrop</span>
+  <a href="rules.html">How it works</a>
+</header>
+
+<main>
+  <!-- Screen 1: login -->
+  <section id="loginView" class="hidden">
+    <div class="status">
+      <h1>One free ticket. Every day.</h1>
+      <p>Opens daily at 10 AM. Draw at 8 PM.</p>
+    </div>
+    <button id="loginBtn">Continue with Google</button>
+  </section>
+
+  <!-- Screen 2: pick + claim -->
+  <section id="pickView" class="hidden">
+    <div class="status">
+      <h1 id="statusTitle">Loading...</h1>
+      <p id="statusSub"></p>
+    </div>
+    <div class="ticket">
+      <div class="prize">Today's prize: ₹4,999</div>
+      <div class="slots">
+        <input id="s0" maxlength="1" inputmode="text" autocomplete="off" aria-label="Letter">
+        <input id="s1" maxlength="1" inputmode="numeric" autocomplete="off" aria-label="Digit 1">
+        <input id="s2" maxlength="1" inputmode="numeric" autocomplete="off" aria-label="Digit 2">
+        <input id="s3" maxlength="1" inputmode="numeric" autocomplete="off" aria-label="Digit 3">
+        <input id="s4" maxlength="1" inputmode="numeric" autocomplete="off" aria-label="Digit 4">
+      </div>
+      <p class="hint">1 letter + 4 numbers. Example: A7381</p>
+      <button id="claimBtn" disabled>Claim my ticket</button>
+      <p class="msg" id="msg"></p>
+    </div>
+  </section>
+
+  <!-- Screen 3: confirmed -->
+  <section id="doneView" class="hidden">
+    <div class="status"><h1>Ticket claimed ✓</h1></div>
+    <div class="ticket done">
+      <div class="prize">Your ticket</div>
+      <div class="code" id="myCode"></div>
+      <p class="sub">Draw tonight at 8:00 PM</p>
+    </div>
+    <div class="ad" id="adAfterClaim">Advertisement</div>
+  </section>
+
+  <button class="ghost hidden" id="logoutBtn">Log out</button>
+  <div class="ad" id="adBottom">Advertisement</div>
+</main>
+
+<footer>Free to play. Ads keep it free. <a href="rules.html" style="color:#fff">Rules</a></footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// 1) PASTE YOUR FIREBASE CONFIG HERE (Firebase console > Project settings > Your apps)
+const firebaseConfig = {
+  apiKey: "PASTE_HERE",
+  authDomain: "PASTE_HERE",
+  projectId: "PASTE_HERE",
+  storageBucket: "PASTE_HERE",
+  messagingSenderId: "PASTE_HERE",
+  appId: "PASTE_HERE"
+};
+
+// 2) Set to false before real launch. true = claim any time (for testing).
+const TEST_MODE = true;
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const $ = id => document.getElementById(id);
+let user = null;
+
+// ---- India time helpers (IST = UTC+5:30) ----
+function istNow(){ return new Date(Date.now() + 5.5*3600*1000); }
+function todayKey(){ return istNow().toISOString().slice(0,10); }   // e.g. 2026-10-08
+function windowState(){
+  if (TEST_MODE) return "open";
+  const n = istNow(), mins = n.getUTCHours()*60 + n.getUTCMinutes();
+  if (mins < 600) return "before";
+  if (mins < 660) return "open";
+  return "closed";
+}
+
+// ---- Screens ----
+function show(id){
+  ["loginView","pickView","doneView"].forEach(v => $(v).classList.toggle("hidden", v !== id));
+  $("logoutBtn").classList.toggle("hidden", id === "loginView");
+}
+function updateStatus(){
+  const s = windowState();
+  const t = $("statusTitle"), sub = $("statusSub");
+  if (s === "open"){ t.textContent = TEST_MODE ? "Drop is open (test mode)" : "The Drop is open"; sub.textContent = "Pick your ticket before 11 AM."; }
+  if (s === "before"){ t.textContent = "Opens at 10 AM"; sub.textContent = "Come back then to pick your ticket."; }
+  if (s === "closed"){ t.textContent = "Today's Drop is closed"; sub.textContent = "Come back tomorrow at 10 AM."; }
+  checkReady();
+}
+
+// ---- Ticket slots ----
+const slots = [0,1,2,3,4].map(i => $("s"+i));
+slots.forEach((el, i) => {
+  el.addEventListener("input", () => {
+    el.value = i === 0 ? el.value.replace(/[^a-zA-Z]/g,"").toUpperCase() : el.value.replace(/\D/g,"");
+    if (el.value && i < 4) slots[i+1].focus();
+    $("msg").textContent = "";
+    checkReady();
+  });
+  el.addEventListener("keydown", e => { if (e.key === "Backspace" && !el.value && i > 0) slots[i-1].focus(); });
+});
+const getCode = () => slots.map(s => s.value).join("");
+function checkReady(){ $("claimBtn").disabled = !(getCode().length === 5 && windowState() === "open"); }
+
+// ---- Login ----
+$("loginBtn").onclick = () => signInWithPopup(auth, new GoogleAuthProvider()).catch(() => alert("Login failed. Please try again."));
+$("logoutBtn").onclick = () => signOut(auth);
+
+onAuthStateChanged(auth, async u => {
+  user = u;
+  if (!u){ show("loginView"); return; }
+  const snap = await getDoc(doc(db, "entries", todayKey() + "_" + u.uid));
+  if (snap.exists()){ showTicket(snap.data().code); }
+  else { show("pickView"); updateStatus(); }
+});
+
+function showTicket(code){ $("myCode").textContent = code; show("doneView"); }
+
+// ---- Claim (one ticket per person per day, no duplicate codes) ----
+$("claimBtn").onclick = async () => {
+  const code = getCode(), day = todayKey();
+  $("claimBtn").disabled = true;
+  $("msg").textContent = "Claiming...";
+  try {
+    await runTransaction(db, async tx => {
+      const entryRef = doc(db, "entries", day + "_" + user.uid);
+      const ticketRef = doc(db, "tickets", day + "_" + code);
+      if ((await tx.get(entryRef)).exists()) throw new Error("already");
+      if ((await tx.get(ticketRef)).exists()) throw new Error("taken");
+      tx.set(ticketRef, { code, day, uid: user.uid, createdAt: serverTimestamp() });
+      tx.set(entryRef, { code, day, createdAt: serverTimestamp() });
+    });
+    showTicket(code);
+  } catch (e) {
+    $("msg").textContent = e.message === "taken" ? "That ticket is taken. Try another." :
+                           e.message === "already" ? "You already claimed today's ticket." :
+                           "Something went wrong. Please try again.";
+    checkReady();
+  }
+};
+
+setInterval(() => { if (!$("pickView").classList.contains("hidden")) updateStatus(); }, 15000);
+</script>
+</body>
+</html>
