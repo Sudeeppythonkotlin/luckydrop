@@ -5,11 +5,11 @@
  <div class="ticket"><div class="tk-head"><small id="lbl">Winning ticket</small><b id="prize"></b></div>
   <div class="tk-body"><div class="code" id="code">-----</div><p class="sub" id="when"></p></div></div>
  <div class="note hidden" id="mine"></div>
- <div class="ad">Advertisement</div>
+ <div class="ad" data-slot="winner"><small>Advertisement</small></div>
  <div class="list"><h2>Past winners</h2><div id="past"></div></div>
  <a class="btn line" href="index.html">Claim today's ticket</a>
 </main>
-<footer><a href="rules.html">How it works</a><a href="winner.html">Winners</a><a href="privacy.html">Privacy</a><p style="margin-top:8px">Free to play. Ads keep it free.</p></footer>
+<footer><a href="rules.html">How it works</a><a href="winner.html">Winners</a><a href="picks.html">Picks</a><a href="terms.html">Terms</a><a href="privacy.html">Privacy</a><p style="margin-top:8px">Free to play. Ads keep it free.</p></footer>
 <script type="module">
 import {auth,db,PRIZE,todayKey,secsToIST,fmt} from "./firebase.js";
 import {onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -30,4 +30,4 @@ load();setInterval(()=>{if(!winner)load()},30000);
 getDocs(query(collection(db,"results"),orderBy("day","desc"),limit(8))).then(q=>{
  const rows=q.docs.filter(d=>d.id!==day).map(d=>'<div class="row"><span>'+nice(d.id)+'</span><b>'+d.data().code+'</b></div>');
  $("past").innerHTML=rows.join("")||'<p style="color:var(--mint);margin-top:10px">The first winner will appear here.</p>'});
-</script></body></html>
+</script><script src="ads.js"></script></body></html>

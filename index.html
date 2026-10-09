@@ -29,8 +29,9 @@
  <div class="ticket"><div class="tk-head"><small>Your ticket</small><b id="prize2"></b></div>
   <div class="tk-body"><div class="code" id="myCode"></div><p class="sub">Draw tonight at 8:00 PM</p>
   <a class="btn dark" href="winner.html" style="margin-top:20px">See tonight's winner</a>
-  <a class="btn line" id="shareBtn" target="_blank" rel="noopener">Share with a friend</a></div></div>
- <div class="ad">Advertisement</div>
+  <a class="btn line" id="shareBtn" target="_blank" rel="noopener">Share with a friend</a>
+  <p class="sub" style="margin-top:16px"><a href="picks.html" style="color:var(--blue);font-weight:700">While you wait: Today's Picks &rarr;</a></p></div></div>
+ <div class="ad" data-slot="after-claim"><small>Advertisement</small></div>
 </section>
 
 <div class="trust">
@@ -38,10 +39,10 @@
  <div><s>✓</s><span><b>One ticket per person</b>Every player gets the same fair chance.</span></div>
  <div><s>✓</s><span><b>Random and public</b>The winner is picked by a random draw and shown on the Winners page.</span></div>
 </div>
-<div class="ad">Advertisement</div>
+<div class="ad" data-slot="bottom"><small>Advertisement</small></div>
 <button class="btn line hidden" id="logoutBtn">Log out</button>
 </main>
-<footer><a href="rules.html">How it works</a><a href="winner.html">Winners</a><a href="privacy.html">Privacy</a><p style="margin-top:8px">Free to play. Ads keep it free.</p></footer>
+<footer><a href="rules.html">How it works</a><a href="winner.html">Winners</a><a href="picks.html">Picks</a><a href="terms.html">Terms</a><a href="privacy.html">Privacy</a><p style="margin-top:8px">Free to play. Ads keep it free.</p></footer>
 <script type="module">
 import {auth,db,TEST_MODE,PRIZE,todayKey,istMins,secsToIST,fmt} from "./firebase.js";
 import {GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -78,4 +79,4 @@ $("claimBtn").onclick=async()=>{const c=code(),day=todayKey();$("claimBtn").disa
   done(c)}
  catch(err){$("msg").textContent=err.message==="taken"?"That ticket is taken. Try another.":err.message==="already"?"You already claimed today's ticket.":"Something went wrong. Please try again.";ready()}};
 setInterval(()=>{if(!$("pickView").classList.contains("hidden"))tick()},1000);
-</script></body></html>
+</script><script src="ads.js"></script></body></html>

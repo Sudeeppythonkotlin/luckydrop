@@ -1,0 +1,15 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="A short, hand-picked list of products worth a look today."><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:ital,wght@1,800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"><title>Today's Picks - LuckyDrop</title></head><body><header class="top"><a class="logo serif" href="index.html">Lucky<span>Drop</span></a><nav><a href="winner.html">Winners</a><a href="rules.html">Rules</a></nav></header><main class="doc">
+<div class="hero"><h1>Today's Picks</h1><p>A few things worth a look while you wait for 8 PM.</p></div>
+<p class="fine" style="text-align:center;margin-bottom:16px">Some links are affiliate links. If you buy, we may earn a small commission, at no cost to you. Sponsored picks are always labelled.</p>
+<div id="grid"></div>
+<div class="ad" data-slot="picks-bottom"><small>Advertisement</small></div>
+<a class="btn line" href="winner.html" style="margin-top:20px">See tonight's winner</a>
+</main><footer><a href="rules.html">How it works</a><a href="winner.html">Winners</a><a href="picks.html">Picks</a><a href="terms.html">Terms</a><a href="privacy.html">Privacy</a><p style="margin-top:8px">Free to play. Ads keep it free.</p></footer><script src="picks.js"></script><script>
+var g=document.getElementById("grid"),h="";
+PICKS.forEach(function(p,i){
+ h+='<div class="pick">'+(p.sponsored?'<span class="tag">Sponsored</span>':'')+'<h3></h3><span class="price"></span><p></p><a target="_blank" rel="sponsored nofollow noopener">View product &rarr;</a></div>';
+ if(i===1)h+='<div class="ad" data-slot="picks-mid"><small>Advertisement</small></div>'});
+g.innerHTML=h;
+var cards=g.querySelectorAll(".pick");
+PICKS.forEach(function(p,i){var c=cards[i];c.querySelector("h3").textContent=p.name;c.querySelector(".price").textContent=p.price;c.querySelector("p").textContent=p.note;c.querySelector("a").href=p.link});
+</script><script src="ads.js"></script></body></html>
