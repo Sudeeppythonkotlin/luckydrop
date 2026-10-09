@@ -21,11 +21,12 @@ $("prize").textContent=PRIZE;
 const nice=d=>new Date(d+"T00:00:00Z").toLocaleDateString("en-IN",{day:"numeric",month:"short",timeZone:"UTC"});
 async function load(){
  const r=await getDoc(doc(db,"results",day));
- if(r.exists()){winner=r.data().code;$("code").textContent=winner;$("title").textContent="Congratulations!";$("sub").textContent="Winning ticket for "+nice(day)+".";$("when").textContent="Drawn from "+(r.data().entries||r.data().total)+" entries";mine()}
+ if(r.exists()){winner=r.data().code;$("code").textContent=winner;$("title").textContent="Congratulations!";$("sub").textContent="Winning ticket for "+nice(day)+".";$("when").textContent="Drawn from "+(r.data().entries||r.data().total)+" tickets";mine()}
  else{$("code").textContent="-----";const s=secsToIST(20);
   $("when").textContent=s>0?"Winner revealed in "+fmt(s):"The draw is happening. Check back in a few minutes."}}
-function mine(){if(!winner||!me)return;getDoc(doc(db,"entries",day+"_"+me.uid)).then(s=>{
- if(!s.exists())return;const n=$("mine"),won=s.data().code===winner;n.classList.remove("hidden");
+function mine(){if(!winner||!me)return;Promise.all([getDoc(doc(db,"tickets",day+"_"+winner)),getDoc(doc(db,"entries",day+"_"+me.uid))]).then(([t,s])=>{
+ const won=t.exists()&&t.data().uid===me.uid;if(!won&&!s.exists())return;
+ const n=$("mine");n.classList.remove("hidden");
  n.textContent=won?"That's your ticket. You won! We'll email you at "+me.email+" within 24 hours.":"Your ticket today was "+s.data().code+". Better luck tomorrow.";
  if(won)$("shareWin").classList.remove("hidden")})}
 onAuthStateChanged(auth,u=>{me=u;mine()});

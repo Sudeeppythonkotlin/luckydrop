@@ -18,6 +18,25 @@ service cloud.firestore {
     function windowOpen() { return true; }
     // function windowOpen() { return request.time.hours() * 60 + request.time.minutes() >= 270 && request.time.hours() * 60 + request.time.minutes() < 330; }
 
+    function bonusToken() {
+      let d = request.resource.data;
+      let uid = request.auth.uid;
+      return (d.kind == 'friend' && d.token == uid
+          && get(/databases/$(db)/documents/referrals/$(uid)).data.day == istDay()
+          && get(/databases/$(db)/documents/referrals/$(uid)).data.friendUsed == false
+          && getAfter(/databases/$(db)/documents/referrals/$(uid)).data.friendUsed == true)
+        || (d.kind == 'invite'
+          && get(/databases/$(db)/documents/referrals/$(d.token)).data.referrer == uid
+          && get(/databases/$(db)/documents/referrals/$(d.token)).data.referrerUsed == false
+          && getAfter(/databases/$(db)/documents/referrals/$(d.token)).data.referrerUsed == true)
+        || (d.kind == 'streak' && d.token == uid
+          && get(/databases/$(db)/documents/users/$(uid)).data.streak % 7 == 0
+          && get(/databases/$(db)/documents/users/$(uid)).data.lastDay == istDay()
+          && getAfter(/databases/$(db)/documents/users/$(uid)).data.streakBonusDay == istDay()
+          && (!('streakBonusDay' in get(/databases/$(db)/documents/users/$(uid)).data)
+              || get(/databases/$(db)/documents/users/$(uid)).data.streakBonusDay != istDay()));
+    }
+
     match /tickets/{id} {
       allow get: if request.auth != null;
       allow list: if isAdmin();
@@ -25,7 +44,21 @@ service cloud.firestore {
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.code.matches('^[A-Z][0-9]{4}$')
         && request.resource.data.day == istDay()
-        && id == request.resource.data.day + '_' + request.resource.data.code;
+        && id == request.resource.data.day + '_' + request.resource.data.code
+        && (
+          // the one normal ticket per person per day
+          (!('bonus' in request.resource.data)
+            && !exists(/databases/$(db)/documents/entries/$(request.resource.data.day + '_' + request.auth.uid))
+            && existsAfter(/databases/$(db)/documents/entries/$(request.resource.data.day + '_' + request.auth.uid)))
+          ||
+          // a bonus ticket: needs a real bonus, max 5 a day
+          (request.resource.data.bonus == true
+            && exists(/databases/$(db)/documents/entries/$(request.resource.data.day + '_' + request.auth.uid))
+            && getAfter(/databases/$(db)/documents/entries/$(request.resource.data.day + '_' + request.auth.uid)).data.bonusUsed
+               == get(/databases/$(db)/documents/entries/$(request.resource.data.day + '_' + request.auth.uid)).data.bonusUsed + 1
+            && getAfter(/databases/$(db)/documents/entries/$(request.resource.data.day + '_' + request.auth.uid)).data.bonusUsed <= 5
+            && bonusToken())
+        );
     }
     match /entries/{id} {
       allow get: if request.auth != null && id.matches('.*_' + request.auth.uid);
@@ -33,7 +66,14 @@ service cloud.firestore {
       allow create: if request.auth != null && windowOpen()
         && request.resource.data.email == request.auth.token.email
         && request.resource.data.day == istDay()
-        && id == request.resource.data.day + '_' + request.auth.uid;
+        && id == request.resource.data.day + '_' + request.auth.uid
+        && request.resource.data.bonusUsed == 0
+        && request.resource.data.bonusCodes.size() == 0;
+      allow update: if request.auth != null && windowOpen()
+        && id.matches('.*_' + request.auth.uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bonusUsed', 'bonusCodes'])
+        && request.resource.data.bonusUsed == resource.data.bonusUsed + 1
+        && request.resource.data.bonusCodes.size() == request.resource.data.bonusUsed;
     }
     match /users/{uid} {
       allow get: if request.auth != null;
@@ -43,26 +83,41 @@ service cloud.firestore {
         && request.resource.data.streak == 1
         && request.resource.data.lastDay == istDay()
         && existsAfter(/databases/$(db)/documents/entries/$(request.resource.data.lastDay + '_' + uid));
-      allow update: if request.auth != null && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['streak', 'lastDay'])
-        && request.resource.data.lastDay == istDay()
-        && request.resource.data.lastDay > resource.data.lastDay
-        && request.resource.data.streak >= 1
-        && request.resource.data.streak <= resource.data.streak + 1
-        && existsAfter(/databases/$(db)/documents/entries/$(request.resource.data.lastDay + '_' + uid));
+      allow update: if request.auth != null && request.auth.uid == uid && (
+        (request.resource.data.keys().hasOnly(['streak', 'lastDay', 'streakBonusDay'])
+          && request.resource.data.lastDay == istDay()
+          && request.resource.data.lastDay > resource.data.lastDay
+          && request.resource.data.streak >= 1
+          && request.resource.data.streak <= resource.data.streak + 1
+          && existsAfter(/databases/$(db)/documents/entries/$(request.resource.data.lastDay + '_' + uid)))
+        ||
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['streakBonusDay'])
+          && request.resource.data.streakBonusDay == istDay())
+      );
     }
     match /referrals/{id} {
       allow create: if request.auth != null && id == request.auth.uid
-        && request.resource.data.keys().hasOnly(['referrer', 'friend', 'day', 'referrerUsed', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['referrer', 'friend', 'day', 'referrerUsed', 'friendUsed', 'createdAt'])
         && request.resource.data.friend == id
         && request.resource.data.referrer != id
         && request.resource.data.referrerUsed == false
+        && request.resource.data.friendUsed == false
         && request.resource.data.day == istDay()
         && !exists(/databases/$(db)/documents/users/$(id))
         && exists(/databases/$(db)/documents/users/$(request.resource.data.referrer));
-      allow get, list: if request.auth != null
+      allow get: if request.auth != null
+        && (isAdmin() || id == request.auth.uid || resource.data.referrer == request.auth.uid);
+      allow list: if request.auth != null
         && (isAdmin() || resource.data.referrer == request.auth.uid);
-      allow update: if isAdmin();
+      allow update: if request.auth != null && (
+        (request.auth.uid == resource.data.referrer && resource.data.referrerUsed == false
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['referrerUsed'])
+          && request.resource.data.referrerUsed == true)
+        ||
+        (request.auth.uid == resource.data.friend && resource.data.friendUsed == false
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friendUsed'])
+          && request.resource.data.friendUsed == true)
+      );
     }
     match /results/{day} {
       allow read: if true;
