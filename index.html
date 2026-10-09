@@ -1,8 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"><title>LuckyDrop - One free ticket, every day</title></head><body>
-<header class="top"><a class="logo serif" href="index.html">LuckyDrop</a><nav><a href="winner.html">Winners</a><a href="rules.html">Rules</a></nav></header>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:ital,wght@1,800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"><title>LuckyDrop - One free ticket, every day</title></head><body>
+<header class="top"><a class="logo serif" href="index.html">Lucky<span>Drop</span></a><nav><a href="winner.html">Winners</a><a href="rules.html">Rules</a></nav></header>
 <main>
 <section id="loginView" class="hidden">
- <div class="hero"><h1>One free ticket.<br>Every single day.</h1><p>Pick your own number. Winner announced at 8 PM.</p></div>
+ <div class="hero"><h1>Pick your number.<br>Beat the clock.</h1><p>One free ticket every day. Winner announced at 8 PM.</p></div>
  <div class="ticket"><div class="tk-head"><small>Today's prize</small><b>₹4,999</b></div>
   <div class="tk-body"><div class="slots"><span>A</span><span>7</span><span>3</span><span>8</span><span>1</span></div>
   <p class="hint">Your number, your choice</p>
@@ -25,11 +25,11 @@
 </section>
 
 <section id="doneView" class="hidden">
- <div class="hero"><h1>You're in.</h1><p>Your ticket is locked for tonight's draw.</p></div>
+ <div class="hero"><h1>You're on the grid.</h1><p>Your ticket is locked for tonight's draw.</p></div>
  <div class="ticket"><div class="tk-head"><small>Your ticket</small><b id="prize2"></b></div>
   <div class="tk-body"><div class="code" id="myCode"></div><p class="sub">Draw tonight at 8:00 PM</p>
   <a class="btn dark" href="winner.html" style="margin-top:20px">See tonight's winner</a>
-  <a class="btn line" id="shareBtn" target="_blank" rel="noopener" style="color:var(--ink);border-color:#cfc8ac">Share with a friend</a></div></div>
+  <a class="btn line" id="shareBtn" target="_blank" rel="noopener">Share with a friend</a></div></div>
  <div class="ad">Advertisement</div>
 </section>
 
@@ -52,9 +52,9 @@ const state=()=>{if(TEST_MODE)return"open";const m=istMins();return m<600?"befor
 function show(id){["loginView","pickView","doneView"].forEach(v=>$(v).classList.toggle("hidden",v!==id));$("logoutBtn").classList.toggle("hidden",id==="loginView")}
 function tick(){
  const s=state(),p=$("pill");p.classList.toggle("live",s==="open");
- if(s==="open"){$("pillText").textContent=TEST_MODE?"Test mode: open":"Drop is open · closes in "+fmt(secsToIST(11));$("statusTitle").textContent="Pick your ticket";$("statusSub").textContent="Claim yours before the window closes."}
- if(s==="before"){$("pillText").textContent="Opens in "+fmt(secsToIST(10));$("statusTitle").textContent="Today's Drop opens at 10 AM";$("statusSub").textContent="Come back then to pick your number."}
- if(s==="closed"){$("pillText").textContent="Closed for today";$("statusTitle").textContent="Today's Drop is closed";$("statusSub").textContent="See you tomorrow at 10 AM."}
+ if(s==="open"){$("pillText").textContent=TEST_MODE?"Test mode: open":"Green flag! Closes in "+fmt(secsToIST(11));$("statusTitle").textContent="Pick your number";$("statusSub").textContent="Claim yours before the window closes."}
+ if(s==="before"){$("pillText").textContent="Lights out in "+fmt(secsToIST(10));$("statusTitle").textContent="Today's Drop opens at 10 AM";$("statusSub").textContent="Come back then to pick your number."}
+ if(s==="closed"){$("pillText").textContent="Chequered flag: closed for today";$("statusTitle").textContent="Today's Drop is closed";$("statusSub").textContent="See you tomorrow at 10 AM."}
  ready()}
 const slots=[0,1,2,3,4].map(i=>$("s"+i));
 slots.forEach((el,i)=>{
