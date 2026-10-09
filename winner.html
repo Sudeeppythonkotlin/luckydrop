@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:ital,wght@1,800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"><meta name="description" content="LuckyDrop: one free ticket every day. Pick your number, claim it between 10 and 11 AM, winner revealed at 8 PM.">
-<meta property="og:title" content="LuckyDrop: one free ticket, every day">
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:ital,wght@1,800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"><meta name="description" content="PolePick: one free ticket every day. Pick your number, claim it between 10 and 11 AM, winner revealed at 8 PM.">
+<meta property="og:title" content="PolePick: free daily giveaway in India">
 <meta property="og:description" content="Pick your number. Claim before 11 AM. Winner at 8 PM. Free to play.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://lucky-drop.netlify.app/">
@@ -7,8 +7,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#12161c">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<title>LuckyDrop - Winners</title></head><body>
-<header class="top"><a class="logo serif" href="index.html">Lucky<span>Drop</span></a><nav><a href="winner.html">Winners</a><a href="rules.html">Rules</a></nav></header>
+<title>Daily Winners - PolePick</title></head><body>
+<header class="top"><a class="logo serif" href="index.html">Pole<span>Pick</span></a><nav><a href="winner.html">Winners</a><a href="rules.html">Rules</a></nav></header>
 <main>
  <div class="hero"><h1 id="title">Tonight's winner</h1><p id="sub"></p></div>
  <div class="ticket"><div class="tk-head"><small id="lbl">Winning ticket</small><b id="prize"></b></div>
@@ -39,7 +39,7 @@ function mine(){if(!winner||!me)return;Promise.all([getDoc(doc(db,"tickets",day+
  n.textContent=won?"That's your ticket. You won! We'll email you at "+me.email+" within 24 hours.":"Your ticket today was "+s.data().code+". Better luck tomorrow.";
  if(won)$("shareWin").classList.remove("hidden")})}
 onAuthStateChanged(auth,u=>{me=u;mine()});
-$("shareWin").onclick=async()=>{const b=await makeCard({label:"I won today's drop",code:winner,sub:"Won "+PRIZE});shareCard(b,"I won "+PRIZE+" on LuckyDrop! It's free to play: "+location.origin)};
+$("shareWin").onclick=async()=>{const b=await makeCard({label:"I won today's drop",code:winner,sub:"Won "+PRIZE});shareCard(b,"I won "+PRIZE+" on PolePick! It's free to play: "+location.origin)};
 load();setInterval(()=>{if(!winner)load()},30000);
 getDocs(query(collection(db,"results"),orderBy("day","desc"),limit(8))).then(q=>{
  const rows=q.docs.filter(d=>d.id!==day).map(d=>'<div class="row"><span>'+nice(d.id)+'</span><b>'+d.data().code+'</b></div>');

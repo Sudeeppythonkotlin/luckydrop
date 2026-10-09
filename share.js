@@ -8,8 +8,8 @@ export async function makeCard({label,code,sub}){
   x.save();x.beginPath();x.rect(0,0,1080,290);x.clip();
   const stripe=(x0,w,col)=>{x.fillStyle=col;x.beginPath();x.moveTo(x0,0);x.lineTo(x0+w,0);x.lineTo(x0+w-420,1350);x.lineTo(x0-420,1350);x.fill()};
   stripe(790,100,"#0a8bff");stripe(910,30,"#fff");stripe(960,100,"#0a8bff");x.restore();
-  x.textAlign="left";x.font=F(100);const wA=x.measureText("LUCKY").width,wB=x.measureText("DROP").width,sx=(1080-wA-wB)/2-80;
-  x.fillStyle="#fff";x.fillText("LUCKY",sx,190);x.fillStyle="#ff5a1f";x.fillText("DROP",sx+wA,190);
+  x.textAlign="left";x.font=F(100);const wA=x.measureText("POLE").width,wB=x.measureText("PICK").width,sx=(1080-wA-wB)/2-80;
+  x.fillStyle="#fff";x.fillText("POLE",sx,190);x.fillStyle="#ff5a1f";x.fillText("PICK",sx+wA,190);
   x.fillStyle="#fff";rr(x,90,290,900,680,48);x.fill();
   x.textAlign="center";x.fillStyle="#5b6675";x.font=F(52);x.fillText(label.toUpperCase(),540,395);
   x.fillStyle="#12161c";x.font=F(330);x.fillText(code,540,705);
@@ -20,10 +20,10 @@ export async function makeCard({label,code,sub}){
   return new Promise(r=>c.toBlob(r,"image/png"));
 }
 export async function shareCard(blob,text){
-  const f=new File([blob],"luckydrop.png",{type:"image/png"});
+  const f=new File([blob],"polepick.png",{type:"image/png"});
   if(navigator.canShare&&navigator.canShare({files:[f]})){
     try{await navigator.share({files:[f],text});return}catch(e){if(e.name==="AbortError")return}
   }
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="luckydrop-ticket.png";a.click();
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="polepick-ticket.png";a.click();
   window.open("https://wa.me/?text="+encodeURIComponent(text),"_blank");
 }

@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:ital,wght@1,800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"><meta name="description" content="LuckyDrop: one free ticket every day. Pick your number, claim it between 10 and 11 AM, winner revealed at 8 PM.">
-<meta property="og:title" content="LuckyDrop: one free ticket, every day">
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:ital,wght@1,800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"><meta name="description" content="PolePick is a free daily giveaway in India. Pick your own number, claim it between 10 and 11 AM, and see the winner at 8 PM. No payment, ever.">
+<meta property="og:title" content="PolePick: free daily giveaway in India">
 <meta property="og:description" content="Pick your number. Claim before 11 AM. Winner at 8 PM. Free to play.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://lucky-drop.netlify.app/">
@@ -7,8 +7,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#12161c">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<title>LuckyDrop - One free ticket, every day</title></head><body>
-<header class="top"><a class="logo serif" href="index.html">Lucky<span>Drop</span></a><nav><a href="winner.html">Winners</a><a href="rules.html">Rules</a></nav></header>
+<title>PolePick: Free Daily Giveaway in India. Pick Your Number.</title></head><body>
+<header class="top"><a class="logo serif" href="index.html">Pole<span>Pick</span></a><nav><a href="winner.html">Winners</a><a href="rules.html">Rules</a></nav></header>
 <main>
 <div class="note hidden" id="refNote">A friend invited you. Claim your first ticket and you both get a bonus ticket.</div>
 <section id="loginView" class="hidden">
@@ -145,8 +145,8 @@ $("claimBtn").onclick=async()=>{$("claimBtn").disabled=true;$("msg").textContent
 $("bonusBtn").onclick=()=>{bonusMode=true;slots.forEach(s=>s.value="");show("pickView");tick();slots[0].focus()};
 $("backBtn").onclick=()=>done(myCode);
 $("shareBtn").onclick=async()=>{const b=await makeCard({label:"My ticket for tonight",code:myCode,sub:"Draw tonight at 8 PM"});
- shareCard(b,"I got ticket "+myCode+" on LuckyDrop, a free daily giveaway. Claim yours: "+link())};
-$("inviteBtn").onclick=()=>window.open("https://wa.me/?text="+encodeURIComponent("Join me on LuckyDrop, a free daily giveaway. Claim your first ticket with my link and we both get a bonus ticket: "+link()),"_blank");
+ shareCard(b,"I got ticket "+myCode+" on PolePick, a free daily giveaway. Claim yours: "+link())};
+$("inviteBtn").onclick=()=>window.open("https://wa.me/?text="+encodeURIComponent("Join me on PolePick, a free daily giveaway. Claim your first ticket with my link and we both get a bonus ticket: "+link()),"_blank");
 $("copyBtn").onclick=async()=>{try{await navigator.clipboard.writeText(link());$("copyBtn").textContent="Link copied"}catch(e){prompt("Copy your link:",link())}};
 setInterval(()=>{if(!$("pickView").classList.contains("hidden"))tick()},1000);
 </script><script src="ads.js"></script></body></html>
