@@ -1,24 +1,68 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{db}/documents {
+
     function isAdmin() {
       return request.auth != null
-        && request.auth.token.email == 'sudeepsuresh2006@gmail.com'
+        && request.auth.token.email == 'YOUR_EMAIL@gmail.com'
         && request.auth.token.email_verified == true;
     }
+    function pad(n) { return n < 10 ? '0' + string(n) : string(n); }
+    // Today's date in India (IST = UTC+5:30), like 2026-10-09
+    function istDay() {
+      let t = request.time + duration.value(330, 'm');
+      return string(t.year()) + '-' + pad(t.month()) + '-' + pad(t.day());
+    }
+    // TESTING: claims allowed any time. FOR LAUNCH: delete this line and
+    // remove the // from the line below it (claims only 10:00-11:00 AM IST).
+    function windowOpen() { return true; }
+    // function windowOpen() { return request.time.hours() * 60 + request.time.minutes() >= 270 && request.time.hours() * 60 + request.time.minutes() < 330; }
+
     match /tickets/{id} {
       allow get: if request.auth != null;
       allow list: if isAdmin();
-      allow create: if request.auth != null
+      allow create: if request.auth != null && windowOpen()
         && request.resource.data.uid == request.auth.uid
-        && request.resource.data.code.matches('^[A-Z][0-9]{4}$');
+        && request.resource.data.code.matches('^[A-Z][0-9]{4}$')
+        && request.resource.data.day == istDay()
+        && id == request.resource.data.day + '_' + request.resource.data.code;
     }
     match /entries/{id} {
       allow get: if request.auth != null && id.matches('.*_' + request.auth.uid);
       allow list: if isAdmin();
-      allow create: if request.auth != null
-        && id.matches('.*_' + request.auth.uid)
-        && request.resource.data.email == request.auth.token.email;
+      allow create: if request.auth != null && windowOpen()
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.day == istDay()
+        && id == request.resource.data.day + '_' + request.auth.uid;
+    }
+    match /users/{uid} {
+      allow get: if request.auth != null;
+      allow list: if isAdmin();
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['streak', 'lastDay'])
+        && request.resource.data.streak == 1
+        && request.resource.data.lastDay == istDay()
+        && existsAfter(/databases/$(db)/documents/entries/$(request.resource.data.lastDay + '_' + uid));
+      allow update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['streak', 'lastDay'])
+        && request.resource.data.lastDay == istDay()
+        && request.resource.data.lastDay > resource.data.lastDay
+        && request.resource.data.streak >= 1
+        && request.resource.data.streak <= resource.data.streak + 1
+        && existsAfter(/databases/$(db)/documents/entries/$(request.resource.data.lastDay + '_' + uid));
+    }
+    match /referrals/{id} {
+      allow create: if request.auth != null && id == request.auth.uid
+        && request.resource.data.keys().hasOnly(['referrer', 'friend', 'day', 'referrerUsed', 'createdAt'])
+        && request.resource.data.friend == id
+        && request.resource.data.referrer != id
+        && request.resource.data.referrerUsed == false
+        && request.resource.data.day == istDay()
+        && !exists(/databases/$(db)/documents/users/$(id))
+        && exists(/databases/$(db)/documents/users/$(request.resource.data.referrer));
+      allow get, list: if request.auth != null
+        && (isAdmin() || resource.data.referrer == request.auth.uid);
+      allow update: if isAdmin();
     }
     match /results/{day} {
       allow read: if true;

@@ -77,3 +77,10 @@ details p{margin:10px 0 0}
 .pick a{color:var(--blue);font-weight:700;text-decoration:none}
 .tag{justify-self:start;background:var(--ink);color:#fff;font-size:12px;font-weight:600;padding:2px 10px;border-radius:99px}
 .fine{font-size:14px;color:var(--mint)}
+.invite{background:var(--ink);color:#fff;border-radius:18px;padding:22px 20px;margin-top:20px}
+.invite h2{font-size:32px;text-transform:uppercase;line-height:1;margin-bottom:8px}
+.invite p{color:#c4cad4;margin-bottom:14px}
+.invite .fine{margin:12px 0 0;color:#98a1af}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.stats div{background:#ffffff14;border-radius:10px;padding:10px 4px;text-align:center;font-size:13px;color:#c4cad4}
+.stats b{display:block;font:800 italic 34px/1 "Barlow Condensed",Impact,sans-serif;color:var(--brass)}

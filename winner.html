@@ -5,6 +5,7 @@
  <div class="ticket"><div class="tk-head"><small id="lbl">Winning ticket</small><b id="prize"></b></div>
   <div class="tk-body"><div class="code" id="code">-----</div><p class="sub" id="when"></p></div></div>
  <div class="note hidden" id="mine"></div>
+ <button class="btn line hidden" id="shareWin">Share your win</button>
  <div class="ad" data-slot="winner"><small>Advertisement</small></div>
  <div class="list"><h2>Past winners</h2><div id="past"></div></div>
  <a class="btn line" href="index.html">Claim today's ticket</a>
@@ -12,6 +13,7 @@
 <footer><a href="rules.html">How it works</a><a href="winner.html">Winners</a><a href="picks.html">Picks</a><a href="terms.html">Terms</a><a href="privacy.html">Privacy</a><p style="margin-top:8px">Free to play. Ads keep it free.</p></footer>
 <script type="module">
 import {auth,db,PRIZE,todayKey,secsToIST,fmt} from "./firebase.js";
+import {makeCard,shareCard} from "./share.js";
 import {onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {doc,getDoc,getDocs,query,collection,orderBy,limit} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const $=id=>document.getElementById(id),day=todayKey();let winner=null,me=null;
@@ -19,13 +21,15 @@ $("prize").textContent=PRIZE;
 const nice=d=>new Date(d+"T00:00:00Z").toLocaleDateString("en-IN",{day:"numeric",month:"short",timeZone:"UTC"});
 async function load(){
  const r=await getDoc(doc(db,"results",day));
- if(r.exists()){winner=r.data().code;$("code").textContent=winner;$("title").textContent="Congratulations!";$("sub").textContent="Winning ticket for "+nice(day)+".";$("when").textContent="Drawn from "+r.data().total+" tickets";mine()}
+ if(r.exists()){winner=r.data().code;$("code").textContent=winner;$("title").textContent="Congratulations!";$("sub").textContent="Winning ticket for "+nice(day)+".";$("when").textContent="Drawn from "+(r.data().entries||r.data().total)+" entries";mine()}
  else{$("code").textContent="-----";const s=secsToIST(20);
   $("when").textContent=s>0?"Winner revealed in "+fmt(s):"The draw is happening. Check back in a few minutes."}}
 function mine(){if(!winner||!me)return;getDoc(doc(db,"entries",day+"_"+me.uid)).then(s=>{
- if(!s.exists())return;const n=$("mine");n.classList.remove("hidden");
- n.textContent=s.data().code===winner?"That's your ticket. You won! We'll email you at "+me.email+" within 24 hours.":"Your ticket today was "+s.data().code+". Better luck tomorrow."})}
+ if(!s.exists())return;const n=$("mine"),won=s.data().code===winner;n.classList.remove("hidden");
+ n.textContent=won?"That's your ticket. You won! We'll email you at "+me.email+" within 24 hours.":"Your ticket today was "+s.data().code+". Better luck tomorrow.";
+ if(won)$("shareWin").classList.remove("hidden")})}
 onAuthStateChanged(auth,u=>{me=u;mine()});
+$("shareWin").onclick=async()=>{const b=await makeCard({label:"I won today's drop",code:winner,sub:"Won "+PRIZE});shareCard(b,"I won "+PRIZE+" on LuckyDrop! It's free to play: "+location.origin)};
 load();setInterval(()=>{if(!winner)load()},30000);
 getDocs(query(collection(db,"results"),orderBy("day","desc"),limit(8))).then(q=>{
  const rows=q.docs.filter(d=>d.id!==day).map(d=>'<div class="row"><span>'+nice(d.id)+'</span><b>'+d.data().code+'</b></div>');

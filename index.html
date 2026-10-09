@@ -1,6 +1,7 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:ital,wght@1,800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"><title>LuckyDrop - One free ticket, every day</title></head><body>
 <header class="top"><a class="logo serif" href="index.html">Lucky<span>Drop</span></a><nav><a href="winner.html">Winners</a><a href="rules.html">Rules</a></nav></header>
 <main>
+<div class="note hidden" id="refNote">A friend invited you. Claim your first ticket and you both get a bonus entry.</div>
 <section id="loginView" class="hidden">
  <div class="hero"><h1>Pick your number.<br>Beat the clock.</h1><p>One free ticket every day. Winner announced at 8 PM.</p></div>
  <div class="ticket"><div class="tk-head"><small>Today's prize</small><b>₹4,999</b></div>
@@ -29,8 +30,13 @@
  <div class="ticket"><div class="tk-head"><small>Your ticket</small><b id="prize2"></b></div>
   <div class="tk-body"><div class="code" id="myCode"></div><p class="sub">Draw tonight at 8:00 PM</p>
   <a class="btn dark" href="winner.html" style="margin-top:20px">See tonight's winner</a>
-  <a class="btn line" id="shareBtn" target="_blank" rel="noopener">Share with a friend</a>
+  <button class="btn line" id="shareBtn">Share my ticket</button>
   <p class="sub" style="margin-top:16px"><a href="picks.html" style="color:var(--blue);font-weight:700">While you wait: Today's Picks &rarr;</a></p></div></div>
+ <div class="invite"><h2>Bring a friend, double your chance</h2>
+  <p>When a friend claims their first ticket with your link, you both get a bonus entry.</p>
+  <div class="stats"><div><b id="stStreak">1</b>day streak</div><div><b id="stFriends">0</b>friends joined</div><div><b id="stBonus">0</b>bonus entries</div></div>
+  <button class="btn" id="inviteBtn">Invite on WhatsApp</button><button class="btn line" id="copyBtn">Copy my link</button>
+  <p class="fine">Claim 7 days in a row for another bonus entry. Up to 5 invite bonuses per draw.</p></div>
  <div class="ad" data-slot="after-claim"><small>Advertisement</small></div>
 </section>
 
@@ -44,13 +50,19 @@
 </main>
 <footer><a href="rules.html">How it works</a><a href="winner.html">Winners</a><a href="picks.html">Picks</a><a href="terms.html">Terms</a><a href="privacy.html">Privacy</a><p style="margin-top:8px">Free to play. Ads keep it free.</p></footer>
 <script type="module">
-import {auth,db,TEST_MODE,PRIZE,todayKey,istMins,secsToIST,fmt} from "./firebase.js";
+import {auth,db,TEST_MODE,PRIZE,todayKey,istNow,istMins,secsToIST,fmt} from "./firebase.js";
+import {makeCard,shareCard} from "./share.js";
 import {GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {doc,getDoc,runTransaction,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-const $=id=>document.getElementById(id); let user=null;
+import {doc,getDoc,getDocs,query,collection,where,runTransaction,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const $=id=>document.getElementById(id);let user=null,myCode="";
+try{const r=new URLSearchParams(location.search).get("ref");if(r)localStorage.setItem("ld_ref",r)}catch(e){}
+const getRef=()=>{try{return localStorage.getItem("ld_ref")}catch(e){return null}};
+const yesterday=()=>new Date(istNow().getTime()-86400000).toISOString().slice(0,10);
+const link=()=>location.origin+"/?ref="+user.uid;
 $("prize").textContent=$("prize2").textContent=PRIZE;
 const state=()=>{if(TEST_MODE)return"open";const m=istMins();return m<600?"before":m<660?"open":"closed"};
-function show(id){["loginView","pickView","doneView"].forEach(v=>$(v).classList.toggle("hidden",v!==id));$("logoutBtn").classList.toggle("hidden",id==="loginView")}
+function show(id){["loginView","pickView","doneView"].forEach(v=>$(v).classList.toggle("hidden",v!==id));$("logoutBtn").classList.toggle("hidden",id==="loginView");
+ const r=getRef();$("refNote").classList.toggle("hidden",!(r&&id!=="doneView"&&!(user&&r===user.uid)))}
 function tick(){
  const s=state(),p=$("pill");p.classList.toggle("live",s==="open");
  if(s==="open"){$("pillText").textContent=TEST_MODE?"Test mode: open":"Green flag! Closes in "+fmt(secsToIST(11));$("statusTitle").textContent="Pick your number";$("statusSub").textContent="Claim yours before the window closes."}
@@ -65,18 +77,32 @@ const code=()=>slots.map(s=>s.value).join("");
 function ready(){$("claimBtn").disabled=!(code().length===5&&state()==="open")}
 $("loginBtn").onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(()=>alert("Login failed. Please try again."));
 $("logoutBtn").onclick=()=>signOut(auth);
-function done(c){$("myCode").textContent=c;$("shareBtn").href="https://wa.me/?text="+encodeURIComponent("I claimed ticket "+c+" on LuckyDrop, a free daily giveaway. Claim yours: "+location.origin);show("doneView")}
+async function loadStats(){try{
+ const u=await getDoc(doc(db,"users",user.uid));$("stStreak").textContent=u.exists()?u.data().streak:1;
+ const q=await getDocs(query(collection(db,"referrals"),where("referrer","==",user.uid)));
+ $("stFriends").textContent=q.size;$("stBonus").textContent=Math.min(5,q.docs.filter(d=>!d.data().referrerUsed).length)}catch(e){}}
+function done(c){myCode=c;$("myCode").textContent=c;show("doneView");loadStats()}
 onAuthStateChanged(auth,async u=>{user=u;if(!u)return show("loginView");
  const s=await getDoc(doc(db,"entries",todayKey()+"_"+u.uid));
  if(s.exists())done(s.data().code);else{show("pickView");tick()}});
-$("claimBtn").onclick=async()=>{const c=code(),day=todayKey();$("claimBtn").disabled=true;$("msg").textContent="Claiming...";
+$("claimBtn").onclick=async()=>{const c=code(),day=todayKey(),uid=user.uid,ref=getRef();$("claimBtn").disabled=true;$("msg").textContent="Claiming...";
  try{await runTransaction(db,async tx=>{
-  const e=doc(db,"entries",day+"_"+user.uid),t=doc(db,"tickets",day+"_"+c);
-  if((await tx.get(e)).exists())throw new Error("already");
-  if((await tx.get(t)).exists())throw new Error("taken");
-  tx.set(t,{code:c,day,uid:user.uid,createdAt:serverTimestamp()});
-  tx.set(e,{code:c,day,email:user.email,name:user.displayName||"",createdAt:serverTimestamp()})});
+  const eR=doc(db,"entries",day+"_"+uid),tR=doc(db,"tickets",day+"_"+c),uR=doc(db,"users",uid);
+  const e=await tx.get(eR),t=await tx.get(tR),u=await tx.get(uR);
+  const rf=ref&&ref!==uid?await tx.get(doc(db,"users",ref)):null;
+  if(e.exists())throw new Error("already");
+  if(t.exists())throw new Error("taken");
+  const streak=u.exists()&&u.data().lastDay===yesterday()?u.data().streak+1:1;
+  tx.set(tR,{code:c,day,uid,createdAt:serverTimestamp()});
+  tx.set(eR,{code:c,day,email:user.email,name:user.displayName||"",createdAt:serverTimestamp()});
+  if(u.exists())tx.update(uR,{streak,lastDay:day});else tx.set(uR,{streak,lastDay:day});
+  if(!u.exists()&&rf&&rf.exists())tx.set(doc(db,"referrals",uid),{referrer:ref,friend:uid,day,referrerUsed:false,createdAt:serverTimestamp()})});
+  try{localStorage.removeItem("ld_ref")}catch(e){}
   done(c)}
  catch(err){$("msg").textContent=err.message==="taken"?"That ticket is taken. Try another.":err.message==="already"?"You already claimed today's ticket.":"Something went wrong. Please try again.";ready()}};
+$("shareBtn").onclick=async()=>{const b=await makeCard({label:"My ticket for tonight",code:myCode,sub:"Draw tonight at 8 PM"});
+ shareCard(b,"I got ticket "+myCode+" on LuckyDrop, a free daily giveaway. Claim yours: "+link())};
+$("inviteBtn").onclick=()=>window.open("https://wa.me/?text="+encodeURIComponent("Join me on LuckyDrop, a free daily giveaway. Claim your first ticket with my link and we both get a bonus entry: "+link()),"_blank");
+$("copyBtn").onclick=async()=>{try{await navigator.clipboard.writeText(link());$("copyBtn").textContent="Link copied"}catch(e){prompt("Copy your link:",link())}};
 setInterval(()=>{if(!$("pickView").classList.contains("hidden"))tick()},1000);
 </script><script src="ads.js"></script></body></html>
